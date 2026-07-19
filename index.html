@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How Robust Is the BLI Benefit?</title>
+<meta name="description" content="Putting error bars on aviation's most contested efficiency claim — a scroll-driven tour of the paper's power-balance model, validation, and 147,456-run uncertainty quantification.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;background:#05070a;}
+body{overflow-x:hidden;}
+::selection{background:rgba(75,225,255,.25);}
+a{color:#4be1ff;text-decoration:none;}
+a:hover{color:#bdf1ff;}
+a.cta{pointer-events:auto;display:block;border:1px solid #2a3944;padding:15px 26px;font:500 12px 'IBM Plex Mono',monospace;letter-spacing:.2em;color:#e8f0f4;}
+a.cta:hover{border-color:#4be1ff;color:#4be1ff;}
+a.cta.amber:hover{border-color:#ffb45e;color:#ffb45e;}
+@keyframes cueLine{0%{transform:scaleY(0);transform-origin:top}45%{transform:scaleY(1);transform-origin:top}55%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+@keyframes grainJit{0%{transform:translate(0,0)}25%{transform:translate(-2%,1%)}50%{transform:translate(1%,-2%)}75%{transform:translate(-1%,-1%)}100%{transform:translate(2%,2%)}}
+</style>
+</head>
+<body>
+<div style="height:1300vh;width:1px;"></div>
+<bli-scene density="1" style="position:fixed;inset:0;z-index:0;display:block;"></bli-scene>
+<div style="position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 95% at 50% 45%, rgba(0,0,0,0) 52%, rgba(2,4,7,0.8) 100%);"></div>
+<div id="ovl" style="position:fixed;inset:0;z-index:2;pointer-events:none;font-family:'Barlow Condensed','Arial Narrow',sans-serif;color:#e8f0f4;">
+  <div id="ov1" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 6vw;will-change:opacity,transform;">
+    <div style="font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.34em;color:#4be1ff;margin-bottom:22px;">AEROSPACE &middot; UNCERTAINTY QUANTIFICATION &middot; 2026</div>
+    <h1 style="margin:0;font-weight:600;text-transform:uppercase;letter-spacing:.04em;line-height:.92;font-size:clamp(54px,8.6vw,132px);text-wrap:balance;">How robust is<br>the BLI benefit?</h1>
+    <div style="font:400 14px/1.6 'IBM Plex Mono',monospace;color:#93a6b2;margin-top:26px;max-width:52ch;">Putting error bars on aviation&rsquo;s most contested efficiency claim.</div>
+  </div>
+  <div id="cue" style="position:absolute;bottom:4.5vh;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:12px;">
+    <div style="font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.3em;color:#5c6d79;">SCROLL TO CONDUCT</div>
+    <div style="width:1px;height:44px;background:#4be1ff;animation:cueLine 2.2s ease-in-out infinite;"></div>
+  </div>
+  <div id="ov2" style="position:absolute;left:3.5vw;top:50%;transform:translateY(-50%);max-width:620px;opacity:0;will-change:opacity,transform;padding:34px 70px 38px 36px;background:linear-gradient(100deg, rgba(5,7,10,0.85) 0%, rgba(5,7,10,0.55) 62%, rgba(5,7,10,0) 100%);">
+    <div style="font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.3em;color:#4be1ff;margin-bottom:16px;">CH 02 &mdash; BOUNDARY-LAYER INGESTION</div>
+    <h2 style="margin:0;font-weight:600;text-transform:uppercase;letter-spacing:.04em;line-height:.94;font-size:clamp(42px,5.8vw,88px);">Swallow the<br>slow air.</h2>
+    <div style="font:400 13px/1.7 'IBM Plex Mono',monospace;color:#93a6b2;margin-top:20px;max-width:44ch;">Mount the fan at the back of the fuselage and it re-accelerates air the airframe has already slowed &mdash; recovering energy a podded engine simply throws away.</div>
+  </div>
+  <div id="ov2b" style="position:absolute;right:8vw;top:14vh;text-align:right;max-width:520px;opacity:0;will-change:opacity,transform;">
+    <div style="font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.3em;color:#ffb45e;margin-bottom:16px;">SAME THRUST &mdash; LESS POWER</div>
+    <h2 style="margin:0;font-weight:600;text-transform:uppercase;letter-spacing:.04em;line-height:.94;font-size:clamp(34px,4.4vw,64px);">Two ways to<br>push an airplane.</h2>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;margin-top:20px;font:400 13px/1.6 'IBM Plex Mono',monospace;color:#93a6b2;">
+      <div style="display:flex;align-items:center;gap:10px;"><span>Podded: a fast, hot, wasteful jet</span><span style="width:9px;height:9px;border-radius:50%;background:#ffb45e;box-shadow:0 0 10px #ffb45e;"></span></div>
+      <div style="display:flex;align-items:center;gap:10px;"><span>BLI: a gentle jet that fills the wake</span><span style="width:9px;height:9px;border-radius:50%;background:#4be1ff;box-shadow:0 0 10px #4be1ff;"></span></div>
+    </div>
+  </div>
+  <div id="ov3" style="position:absolute;left:50%;top:9vh;transform:translateX(-50%);text-align:center;width:min(88vw,860px);opacity:0;will-change:opacity,transform;">
+    <div style="font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.3em;color:#ffb45e;margin-bottom:16px;">CH 03 &mdash; POWER BALANCE</div>
+    <h2 style="margin:0;font-weight:600;text-transform:uppercase;letter-spacing:.04em;line-height:.94;font-size:clamp(40px,5.4vw,80px);">An exact energy ledger.</h2>
+    <div style="font:500 clamp(16px,2.4vw,27px)/1.4 'IBM Plex Mono',monospace;margin-top:22px;letter-spacing:.03em;">
+      <span style="color:#ffb45e;">P<sub style="font-size:.6em;">K,pod</sub> &minus; P<sub style="font-size:.6em;">K,BLI</sub></span>
+      <span style="color:#e8f0f4;"> = </span>
+      <span style="color:#4be1ff;">&Delta;&Phi;<sub style="font-size:.6em;">jet</sub> + &Delta;&Phi;<sub style="font-size:.6em;">wake</sub></span>
+    </div>
+    <div style="font:400 13px/1.6 'IBM Plex Mono',monospace;color:#93a6b2;margin-top:14px;">Every watt accounted for. Conservation enforced to 1 part in 10<sup style="font-size:.7em;">10</sup> &mdash; on every single run.</div>
+  </div>
+  <div id="ov4" style="position:absolute;inset:0;opacity:0;will-change:opacity,transform;">
+    <div style="position:absolute;left:50%;top:9vh;transform:translateX(-50%);text-align:center;width:min(90vw,900px);">
+      <div style="font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.3em;color:#4be1ff;margin-bottom:16px;">CH 04 &mdash; VALIDATION</div>
+      <h2 style="margin:0;font-weight:600;text-transform:uppercase;letter-spacing:.04em;line-height:.94;font-size:clamp(40px,5.4vw,80px);">Checked against reality.</h2>
+    </div>
+    <div style="position:absolute;left:50%;bottom:9vh;transform:translateX(-50%);display:flex;gap:16px;flex-wrap:wrap;justify-content:center;width:min(94vw,1080px);">
+      <div id="vc1" style="opacity:0;flex:1 1 260px;max-width:330px;border:1px solid #1c2830;background:rgba(7,12,16,0.78);backdrop-filter:blur(6px);padding:18px 20px;">
+        <div style="font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.22em;color:#4be1ff;margin-bottom:8px;">SMITH 1993</div>
+        <div style="font:400 13px/1.6 'IBM Plex Mono',monospace;color:#b7c6d0;">Analytic propulsor limit reproduced to 0.00%.</div>
+      </div>
+      <div id="vc2" style="opacity:0;flex:1 1 260px;max-width:330px;border:1px solid #1c2830;background:rgba(7,12,16,0.78);backdrop-filter:blur(6px);padding:18px 20px;">
+        <div style="font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.22em;color:#4be1ff;margin-bottom:8px;">MIT D8 WIND TUNNEL</div>
+        <div style="font:400 13px/1.6 'IBM Plex Mono',monospace;color:#b7c6d0;">Measured power saving matched; the remaining difference explained.</div>
+      </div>
+      <div id="vc3" style="opacity:0;flex:1 1 260px;max-width:330px;border:1px solid #1c2830;background:rgba(7,12,16,0.78);backdrop-filter:blur(6px);padding:18px 20px;">
+        <div style="font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.22em;color:#ffb45e;margin-bottom:8px;">NASA STARC-ABL</div>
+        <div style="font:400 13px/1.6 'IBM Plex Mono',monospace;color:#b7c6d0;">Published benefit estimates bracketed by the model.</div>
+      </div>
+    </div>
+  </div>
+  <div id="ov5" style="position:absolute;left:3.5vw;top:10vh;max-width:660px;opacity:0;will-change:opacity,transform;padding:34px 70px 38px 36px;background:linear-gradient(100deg, rgba(5,7,10,0.85) 0%, rgba(5,7,10,0.55) 62%, rgba(5,7,10,0) 100%);">
+    <div style="font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.3em;color:#4be1ff;margin-bottom:16px;">CH 05 &mdash; THE SWEEP</div>
+    <h2 style="margin:0;font-weight:600;text-transform:uppercase;letter-spacing:.04em;line-height:.94;font-size:clamp(40px,5.4vw,80px);">Every uncertainty.<br>All at once.</h2>
+    <div style="font:500 clamp(30px,4vw,54px) 'IBM Plex Mono',monospace;color:#4be1ff;margin-top:18px;"><span id="mc-count">0</span><span style="font-size:.42em;color:#5c6d79;"> SIMULATIONS</span></div>
+    <div style="font:400 13px/1.7 'IBM Plex Mono',monospace;color:#93a6b2;margin-top:12px;max-width:46ch;">Monte-Carlo over every disputed assumption, condensed into one response surface. The sweet spot sits near 55% ingestion &mdash; full ingestion is a net penalty.</div>
+  </div>
+  <div id="ov6" style="position:absolute;left:3.5vw;top:50%;transform:translateY(-50%);max-width:580px;opacity:0;will-change:opacity,transform;padding:34px 70px 38px 36px;background:linear-gradient(100deg, rgba(5,7,10,0.85) 0%, rgba(5,7,10,0.55) 62%, rgba(5,7,10,0) 100%);">
+    <div style="font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.3em;color:#ffb45e;margin-bottom:16px;">CH 06 &mdash; SOBOL SENSITIVITY</div>
+    <h2 style="margin:0;font-weight:600;text-transform:uppercase;letter-spacing:.04em;line-height:.94;font-size:clamp(38px,4.9vw,72px);">More ingestion won&rsquo;t save you. Better motors will.</h2>
+    <div style="font:400 13px/1.7 'IBM Plex Mono',monospace;color:#93a6b2;margin-top:20px;max-width:44ch;">Past 50% ingestion, the uncertainty is dominated by electrical-chain efficiency (S<sub style="font-size:.7em;">T</sub> = 0.53) and inlet recovery &mdash; not by how much air you swallow (S<sub style="font-size:.7em;">T</sub> = 0.20). The next percentage point comes from motors and inlets, not bigger scoops.</div>
+  </div>
+  <div id="ov7" style="position:absolute;left:50%;top:9vh;transform:translateX(-50%);text-align:center;width:min(92vw,980px);opacity:0;will-change:opacity,transform;">
+    <div style="font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.3em;color:#4be1ff;margin-bottom:16px;">CH 07 &mdash; THE NUMBER</div>
+    <h2 style="margin:0;font-weight:600;text-transform:uppercase;letter-spacing:.04em;line-height:.94;font-size:clamp(42px,5.8vw,88px);">Fuel saved: <span style="color:#4be1ff;">0.3&ndash;3.7%</span></h2>
+    <div style="font:400 13px/1.6 'IBM Plex Mono',monospace;color:#93a6b2;margin-top:16px;">90% confidence. The aerodynamic saving is 11&ndash;28% &mdash; then the electric drivetrain takes its cut.</div>
+  </div>
+  <div id="ov8" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 6vw;opacity:0;visibility:hidden;will-change:opacity;">
+    <div style="font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.34em;color:#4be1ff;margin-bottom:20px;">CH 08 &mdash; DEBRIEF</div>
+    <h2 style="margin:0;font-weight:600;text-transform:uppercase;letter-spacing:.04em;line-height:.94;font-size:clamp(44px,6.4vw,96px);">Read the full ledger.</h2>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:38px;">
+      <a class="cta" href="https://github.com/abc000cool/bli-power-balance/releases/download/v0.1.1/blipb-manuscript-v0.1.1.pdf" target="_blank" rel="noopener">READ THE PAPER (PDF)</a>
+      <a class="cta" href="https://github.com/abc000cool/bli-power-balance" target="_blank" rel="noopener">GET THE CODE</a>
+      <a class="cta amber" href="https://doi.org/10.5281/zenodo.21435006" target="_blank" rel="noopener">DATA (DOI)</a>
+    </div>
+    <div style="font:400 11px/1.8 'IBM Plex Mono',monospace;color:#5c6d79;margin-top:44px;letter-spacing:.18em;">ANSH PATHAK &middot; 2026<br>63 TESTS &middot; 90% COVERAGE &middot; BSD-3</div>
+  </div>
+</div>
+<div id="alt" style="position:fixed;top:0;right:0;height:100vh;width:60px;z-index:4;pointer-events:none;overflow:hidden;border-left:1px solid rgba(42,57,68,0.5);background:linear-gradient(to left, rgba(5,7,10,0.55), rgba(5,7,10,0));">
+  <div id="alt-tape" style="position:absolute;top:0;right:0;width:60px;height:3001px;will-change:transform;"></div>
+  <div style="position:absolute;top:50%;right:0;width:26px;height:1px;background:#ffb45e;box-shadow:0 0 8px rgba(255,180,94,0.8);"></div>
+</div>
+<div id="alt-read" style="position:fixed;top:50%;right:70px;transform:translateY(-50%);z-index:4;pointer-events:none;text-align:right;">
+  <div id="alt-num" style="font:500 20px 'IBM Plex Mono',monospace;color:#ffb45e;">000</div>
+  <div id="alt-ch" style="font:400 10px 'IBM Plex Mono',monospace;letter-spacing:.22em;color:#5c6d79;margin-top:4px;">01 &middot; APPROACH</div>
+</div>
+<div id="grain" style="position:fixed;inset:-50%;width:200%;height:200%;z-index:5;pointer-events:none;opacity:0.05;mix-blend-mode:screen;animation:grainJit 0.6s steps(4) infinite;background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22180%22 height=%22180%22><filter id=%22n%22><feTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%222%22 stitchTiles=%22stitch%22/></filter><rect width=%22180%22 height=%22180%22 filter=%22url(%23n)%22/></svg>');"></div>
+<script src="scene.js"></script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const ss = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const names = [[0, '01 · APPROACH'], [0.115, '02 · INGESTION'], [0.31, '03 · LEDGER'], [0.435, '04 · VALIDATION'], [0.57, '05 · MONTE CARLO'], [0.715, '06 · SENSITIVITY'], [0.85, '07 · THE NUMBER'], [0.935, '08 · DEBRIEF']];
+  const tape = $('alt-tape');
+  if (tape) {
+    let h = '';
+    for (let v = 0; v <= 100; v++) {
+      const top = (100 - v) * 30, maj = v % 10 === 0;
+      h += `<div style="position:absolute;right:14px;top:${top}px;width:${maj ? 20 : 10}px;height:1px;background:${maj ? 'rgba(75,225,255,.4)' : 'rgba(75,225,255,.13)'}"></div>`;
+      if (maj) h += `<div style="position:absolute;right:40px;top:${top - 7}px;font:400 10px 'IBM Plex Mono',monospace;color:rgba(125,143,156,.6)">${String(v).padStart(3, '0')}</div>`;
+    }
+    names.forEach(m => { h += `<div style="position:absolute;right:0;top:${(100 - m[0] * 100) * 30}px;width:7px;height:2px;background:#ffb45e"></div>`; });
+    tape.innerHTML = h;
+  }
+  function tick() {
+    const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    const p = Math.max(0, Math.min(1, (window.scrollY || 0) / max));
+    const e1 = $('ov1');
+    if (e1) { const al = 1 - ss(0.035, 0.07, p); e1.style.opacity = al.toFixed(3); e1.style.visibility = al < 0.01 ? 'hidden' : 'visible'; e1.style.transform = `translate3d(0,${(-p * 260).toFixed(1)}px,0)`; }
+    const winA = (a, b) => Math.min(ss(a, a + 0.035, p), 1 - ss(b - 0.035, b, p));
+    [['ov2', 0.10, 0.20], ['ov2b', 0.225, 0.305], ['ov3', 0.315, 0.425], ['ov4', 0.445, 0.555], ['ov5', 0.575, 0.705], ['ov6', 0.72, 0.84], ['ov7', 0.858, 0.928]].forEach(w => {
+      const c = (w[1] + w[2]) / 2;
+      const ty = (c - p) * 320;
+      const e = $(w[0]); if (!e) return;
+      const al = winA(w[1], w[2]);
+      e.style.opacity = al.toFixed(3); e.style.visibility = al < 0.01 ? 'hidden' : 'visible';
+      const pre = (w[0] === 'ov2' || w[0] === 'ov6') ? 'translateY(-50%) ' : (w[0] === 'ov3' || w[0] === 'ov7') ? 'translateX(-50%) ' : '';
+      e.style.transform = pre + `translate3d(0,${ty.toFixed(1)}px,0)`;
+    });
+    const f8 = ss(0.942, 0.972, p); const e8 = $('ov8');
+    if (e8) { e8.style.opacity = f8.toFixed(3); e8.style.visibility = f8 < 0.02 ? 'hidden' : 'visible'; e8.style.pointerEvents = f8 > 0.5 ? 'auto' : 'none'; }
+    [['vc1', 0.46], ['vc2', 0.495], ['vc3', 0.53]].forEach(c => {
+      const e = $(c[0]); if (!e) return;
+      const al = ss(c[1], c[1] + 0.02, p) * winA(0.445, 0.555);
+      e.style.opacity = al.toFixed(3); e.style.transform = `translate3d(0,${((1 - al) * 24).toFixed(1)}px,0)`;
+    });
+    const ce = $('mc-count'); if (ce) ce.textContent = Math.round(ss(0.59, 0.66, p) * 147456).toLocaleString('en-US');
+    const cue = $('cue'); if (cue) cue.style.opacity = Math.max(0, 1 - p * 30).toFixed(3);
+    const altOn = innerWidth > 760;
+    const alt = $('alt'), read = $('alt-read');
+    if (alt) alt.style.display = altOn ? 'block' : 'none';
+    if (read) read.style.display = altOn ? 'block' : 'none';
+    if (altOn) {
+      if (tape) tape.style.transform = `translate3d(0,${(innerHeight / 2 - (3000 - 3000 * p)).toFixed(1)}px,0)`;
+      const ro = $('alt-num'); if (ro) ro.textContent = String(Math.round(p * 100)).padStart(3, '0');
+      const rc = $('alt-ch'); if (rc) { let nm = names[0][1]; names.forEach(n => { if (p >= n[0]) nm = n[1]; }); rc.textContent = nm; }
+    }
+  }
+  const loop = () => { requestAnimationFrame(loop); tick(); };
+  loop();
+})();
+</script>
+</body>
+</html>
